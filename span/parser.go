@@ -6,9 +6,14 @@ import (
 	"strings"
 )
 
+const (
+	TIMESTAMP_SIZE = 5
+	RANGE_SIZE     = 13
+)
+
 func parseTimestamp(input string) (Timestamp, error) {
 
-	if len(input) != 5 {
+	if len(input) != TIMESTAMP_SIZE {
 		return Timestamp{}, errors.New("timestamp must be in the format hh:mm")
 	}
 
@@ -51,20 +56,20 @@ func parseRange(input string) ([2]Timestamp, []error) {
 
 	rng := [2]Timestamp{}
 
-	if len(input) != 13 {
+	if len(input) != RANGE_SIZE {
 		return rng, []error{errors.New("range must be in the format hh:mm - hh:mm")}
 	}
 
 	errs := make([]error, 0)
 
-	start, err := parseTimestamp(input[0:5])
+	start, err := parseTimestamp(input[0:TIMESTAMP_SIZE])
 	if err != nil {
 		errs = append(errs, err)
 	} else {
 		rng[0] = start
 	}
 
-	end, err := parseTimestamp(input[8:])
+	end, err := parseTimestamp(input[RANGE_SIZE-TIMESTAMP_SIZE:])
 	if err != nil {
 		errs = append(errs, err)
 	} else {
@@ -72,5 +77,38 @@ func parseRange(input string) ([2]Timestamp, []error) {
 	}
 
 	return rng, errs
+
+}
+
+func parseDescriptionAndTag(input string) (string, string) {
+
+	if len(input) == 0 {
+		return "", ""
+	}
+
+	if !strings.Contains(input, "#") {
+		return strings.TrimSpace(input), ""
+	}
+
+	h := strings.LastIndex(input, "#")
+
+	desc := strings.TrimSpace(input[0:h])
+	tag := strings.TrimSpace(input[h+1:])
+
+	return desc, tag
+
+}
+
+func parseEntry(input string) (Entry, error) {
+
+	if len(input) < RANGE_SIZE {
+		return Entry{}, errors.New("unable to parse entry, input too short")
+	}
+
+	// @TODO: Change error handling to use logging instead?
+	ranges, _ := parseRange(input[0:RANGE_SIZE])
+	desc, tag := parseDescriptionAndTag(input[RANGE_SIZE:])
+
+	return newEntry(desc, tag, ranges[0], ranges[1]), nil
 
 }
