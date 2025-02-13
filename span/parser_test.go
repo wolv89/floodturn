@@ -65,10 +65,11 @@ func TestParseTimestamp(t *testing.T) {
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, err := parseTimestamp(tt.input)
-			if err != nil {
-				if err.Error() != tt.err {
-					t.Errorf("got: %s, expected: %s", err.Error(), tt.err)
+			warnings := make([]string, 0)
+			got := parseTimestamp(tt.input, &warnings)
+			if len(warnings) > 0 {
+				if warnings[len(warnings)-1] != tt.err {
+					t.Errorf("got: %s, expected: %s", warnings[len(warnings)-1], tt.err)
 				}
 			} else {
 				if got != tt.expected {
@@ -110,10 +111,11 @@ func TestParseRange(t *testing.T) {
 
 	for name, tt := range tests {
 		t.Run(name, func(t *testing.T) {
-			got, errs := parseRange(tt.input)
-			if len(errs) > 0 {
-				if errs[0].Error() != tt.err {
-					t.Errorf("got: %s, expected: %s", errs[0].Error(), tt.err)
+			warnings := make([]string, 0)
+			got := parseRange(tt.input, &warnings)
+			if len(warnings) > 0 {
+				if warnings[len(warnings)-1] != tt.err {
+					t.Errorf("got: %s, expected: %s", warnings[len(warnings)-1], tt.err)
 				}
 			} else {
 				if !reflect.DeepEqual(got, tt.expected) {
@@ -178,6 +180,7 @@ func TestParseEntry(t *testing.T) {
 		},
 		`simple`: {
 			entry: Entry{
+				Warnings:    []string{},
 				Description: "did some work",
 				Tag:         "job",
 				Start:       Timestamp{9, 0},
@@ -189,6 +192,7 @@ func TestParseEntry(t *testing.T) {
 		},
 		`notag`: {
 			entry: Entry{
+				Warnings:    []string{},
 				Description: "did lots of work",
 				Tag:         "",
 				Start:       Timestamp{10, 15},
@@ -200,6 +204,9 @@ func TestParseEntry(t *testing.T) {
 		},
 		`timely`: {
 			entry: Entry{
+				Warnings: []string{
+					"unable to parse hours",
+				},
 				Description: "end time with no start #job",
 				Tag:         "job",
 				Start:       Timestamp{0, 0},
@@ -211,6 +218,9 @@ func TestParseEntry(t *testing.T) {
 		},
 		`untimely`: {
 			entry: Entry{
+				Warnings: []string{
+					"negative duration",
+				},
 				Description: "desc",
 				Tag:         "",
 				Start:       Timestamp{15, 0},
