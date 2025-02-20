@@ -8,7 +8,7 @@ import (
 )
 
 type Span struct {
-	Days []Day
+	Days []Day `json:"days"`
 }
 
 var weekdays = map[string]int{
@@ -73,6 +73,7 @@ func (sp *Span) Read(useSample int) error {
 	}
 
 	if len(day.Entries) > 0 {
+		day.Validate()
 		sp.Days = append(sp.Days, day)
 	}
 
@@ -89,11 +90,22 @@ func (sp Span) Render() {
 		return
 	}
 
+	var wd string
+
 	for _, day := range sp.Days {
-		fmt.Printf("# %s\n", day.Weekday.String())
-		fmt.Println("---")
+
+		wd = day.Weekday.String()
+
+		fmt.Println("")
+
+		fmt.Println(strings.Repeat("#", len(wd)+8))
+		fmt.Printf("##  %s  ##\n", wd)
+		fmt.Println(strings.Repeat("#", len(wd)+8))
+
+		fmt.Println("")
+
 		for _, entry := range day.Entries {
-			fmt.Println(entry)
+			entry.Render()
 		}
 		fmt.Println("")
 	}

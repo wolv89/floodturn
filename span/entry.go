@@ -1,15 +1,26 @@
 package span
 
+import (
+	"fmt"
+	"strings"
+)
+
 type Timestamp struct {
 	Hour, Minute int
 }
 
 type Entry struct {
-	Warnings         []string
-	Description, Tag string
-	Start, End       Timestamp
-	Duration         int
+	Warnings    []string  `json:"warnings"`
+	Description string    `json:"description"`
+	Tag         string    `json:"tag"`
+	Start       Timestamp `json:"start"`
+	End         Timestamp `json:"end"`
+	Duration    int       `json:"duration"`
 }
+
+const (
+	REF_LENGTH = 32
+)
 
 func newEntry(desc, tag string, start, end Timestamp, warnings []string) Entry {
 
@@ -42,5 +53,49 @@ func (e *Entry) CalculateDuration() {
 	}
 
 	e.Duration = dur
+
+}
+
+func (e Entry) RefName() string {
+
+	var b strings.Builder
+
+	if len(e.Description) > REF_LENGTH {
+		b.WriteString(e.Description[:REF_LENGTH] + "...")
+	} else {
+		b.WriteString(e.Description)
+	}
+
+	b.WriteString(" #")
+
+	if len(e.Tag) > REF_LENGTH {
+		b.WriteString(e.Tag[:REF_LENGTH] + "...")
+	} else {
+		b.WriteString(e.Tag)
+	}
+
+	return b.String()
+
+}
+
+func (t Timestamp) GetSlot() int {
+	return t.Hour*4 + t.Minute/15
+}
+
+func (e Entry) Render() {
+
+	fmt.Println("-------------")
+	fmt.Printf("%s #%s\n", e.Description, e.Tag)
+	fmt.Println("-------------")
+
+	fmt.Printf("%02d:%02d - %02d:%02d\n", e.Start.Hour, e.Start.Minute, e.End.Hour, e.End.Minute)
+
+	if len(e.Warnings) > 0 {
+		for _, warn := range e.Warnings {
+			fmt.Println("*", warn)
+		}
+	}
+
+	fmt.Println("")
 
 }
