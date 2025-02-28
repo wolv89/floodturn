@@ -4,12 +4,15 @@ import (
 	"flag"
 	"log"
 
+	"github.com/wolv89/floodturn/api"
 	"github.com/wolv89/floodturn/span"
 )
 
 var flagSample int
 
 func main() {
+
+	api.Run()
 
 	flag.Parse()
 
