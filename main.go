@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
 
 	"github.com/wolv89/floodturn/api"
 	"github.com/wolv89/floodturn/span"
@@ -11,8 +12,6 @@ import (
 var flagSample int
 
 func main() {
-
-	api.Run()
 
 	flag.Parse()
 
@@ -29,7 +28,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sp.Render()
+	mux := http.NewServeMux()
+	api.LoadRoutes(mux)
+
+	server := &http.Server{
+		Handler: mux,
+		Addr:    ":35663",
+	}
+
+	server.ListenAndServe()
 
 }
 

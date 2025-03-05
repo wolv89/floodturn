@@ -1,12 +1,13 @@
 package api
 
 import (
-	"fmt"
+	"net/http"
 	"time"
 )
 
 type Datestamp struct {
-	Formal, Friendly string
+	Formal   string `json:"formal"`
+	Friendly string `json:"friendly"`
 }
 
 const (
@@ -14,18 +15,12 @@ const (
 	SELECTION_DAYS  = SELECTION_WEEKS * 7
 )
 
-func Run() {
+func handleGetDateRange(w http.ResponseWriter, req *http.Request) {
 
 	today := time.Now()
-	quicktest := getSelectionRange(today)
+	daterange := getSelectionRange(today)
 
-	for _, qt := range quicktest {
-		fmt.Println(qt)
-	}
-
-	fmt.Println("")
-	fmt.Println("")
-	fmt.Println("")
+	jsonResponse(w, http.StatusOK, daterange)
 
 }
 
